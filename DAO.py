@@ -7,7 +7,7 @@ class Vaccines:
     def insert(self, vaccine):
         self._conn.execute("""
                INSERT INTO Vaccines (id, date ,supplier, quantity) VALUES (?, ?, ? ,?)
-           """, [vaccine.id, vaccine.date , vaccine.supplier , vaccine.quantity])
+           """, [vaccine.id, vaccine.date, vaccine.supplier, vaccine.quantity])
 
 
 class Suppliers:
@@ -28,19 +28,6 @@ class Clinics:
         self._conn.execute("""
                INSERT INTO Clinics (id, location, demand, logistic) VALUES (?, ?, ? ,?)
            """, [Clinic.id, Clinic.location , Clinic.demand , Clinic.logistic])
-
-    # def find(self, product_id):
-    #     c = self._conn.cursor()
-    #     c.execute("""
-    #         SELECT  *FROM Products WHERE id = ?
-    #     """, [product_id])
-    #
-    #     return Product(*c.fetchone())
-    #
-    # def update(self, product):
-    #     self._conn.execute("""
-    #            UPDATE Products SET quantity=(?) WHERE id=(?)
-    #        """, [product.quantity, product.id])
 
 
 class Logistics:
