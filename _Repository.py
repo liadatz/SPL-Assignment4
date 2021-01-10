@@ -6,7 +6,7 @@ from DAO import Vaccines, Logistics, Suppliers, Clinics
 
 class _Repository:
     def __init__(self):
-        # self.isExist = os.path.isfile('database.db')  # TODO: delete before submission
+        self.isExist = os.path.isfile('database.db')  # TODO: delete before submission
         self._conn = sqlite3.connect('database.db')
         # DAO'S
         self.vaccines = Vaccines(self._conn)
@@ -18,12 +18,21 @@ class _Repository:
         self._conn.commit()
         self._conn.close()
 
+    def get_output_addition(self):
+        c = self._conn.cursor()
+        all_quantities = c.execute("""SELECT SUM(quantity) FROM Vaccines""").fetchall()[0]
+        all_demands = c.execute("""SELECT SUM(demand) FROM Clinics""").fetchall()[0]
+        all_received = c.execute("""SELECT SUM(count_received) FROM Logistics""").fetchall()[0]
+        all_sent = c.execute("""SELECT SUM(count_sent) FROM Logistics""").fetchall()[0]
+        line = ",".join([all_quantities[0], all_demands[0], all_received[0], all_sent[0]])
+        return line
+
     def create_tables(self):
-        # if self.isExist:
-        #     self._conn.executescript("""DROP  TABLE Vaccines""")
-        #     self._conn.executescript("""DROP  TABLE Suppliers""")
-        #     self._conn.executescript("""DROP  TABLE Clinics""")
-        #     self._conn.executescript("""DROP  TABLE Logistics""")
+        if self.isExist:
+            self._conn.executescript("""DROP  TABLE Vaccines""")
+            self._conn.executescript("""DROP  TABLE Suppliers""")
+            self._conn.executescript("""DROP  TABLE Clinics""")
+            self._conn.executescript("""DROP  TABLE Logistics""")
 
         self._conn.executescript("""
         CREATE TABLE Vaccines (

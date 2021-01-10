@@ -26,4 +26,4 @@ class Logistic:
         self.id = id
         self.name = name
         self.count_sent = count_sent
-        self.received = count_received
+        self.count_received = count_received

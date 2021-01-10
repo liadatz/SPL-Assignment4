@@ -4,14 +4,13 @@ from DTO import Vaccine, Clinic, Supplier, Logistic
 from _Repository import repo
 
 
-def main(args):
+def main():
     repo.create_tables()
-    input = args[1]
-    with open(input) as inputFile:
+    readfromconfig = sys.argv[1]
+    with open(readfromconfig) as inputFile:
 
         # decode amounts of each type
         amounts = (inputFile.readline().replace("\n", "").split(","))
-
         # decode, create and insert all vaccines
         for i in range(1, int(amounts[0]) + 1):
             curr = inputFile.readline().replace("\n", "").split(",")
@@ -37,4 +36,4 @@ def main(args):
             repo.logistics.insert(logistic)
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
