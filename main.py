@@ -40,7 +40,6 @@ def loadData(path):
 
 
 def executeOrder(path):
-    # repo.create_tables()
     with open(path) as inputFile:
         f = open("output.txt", "w")
         # decode amounts of each
@@ -53,6 +52,7 @@ def executeOrder(path):
                 repo.vaccines.insert(vaccine)
                 logistic_id = repo.suppliers.get_logistic_by_name(command[0])
                 repo.logistics.update_count_received(logistic_id, command[1])
+            # sent shipment
             else:
                 repo.pull_vaccines(command[0], int(command[1]))
                 repo.clinics.update_amount(command[0], command[1])
