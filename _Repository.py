@@ -26,7 +26,7 @@ class _Repository:
         all_received = c.execute("""SELECT SUM(count_received) FROM logistics""").fetchall()[0]
         all_sent = c.execute("""SELECT SUM(count_sent) FROM logistics""").fetchall()[0]
         line = str(all_quantities[0]) + ',' + str(all_demands[0]) + ',' + str(all_received[0]) + ',' + str(
-            all_sent[0]) + '\n'
+            all_sent[0])
         return line
 
     def pull_vaccines(self, clinic_name, demand):

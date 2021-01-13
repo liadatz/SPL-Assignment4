@@ -42,8 +42,12 @@ def loadData(path):
 def executeOrder(path, output_path):
     with open(path) as inputFile:
         f = open(output_path, "w")
+        is_first_line = bool(1)
         # decode amounts of each
         for line in inputFile:
+            if not is_first_line:
+                f.write('\n')
+            is_first_line = bool(0)
             command = line.replace("\n", "").split(",")
             # receive shipment
             if len(command) == 3:
