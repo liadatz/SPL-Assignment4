@@ -5,7 +5,7 @@ from _Repository import repo
 
 def main(argv):
     loadData(argv[1])
-    executeOrder(argv[2])
+    executeOrder(argv[2], argv[3])
 
 
 def loadData(path):
@@ -20,7 +20,7 @@ def loadData(path):
             vaccine = Vaccine(*curr)
             repo.vaccines.insert(vaccine)
 
-        # creat and insert all suppliers
+        # create and insert all suppliers
         for i in range(1, int(amounts[1]) + 1):
             curr = inputFile.readline().replace("\n", "").split(",")
             supplier = Supplier(*curr)
@@ -39,9 +39,9 @@ def loadData(path):
             repo.logistics.insert(logistic)
 
 
-def executeOrder(path):
+def executeOrder(path, output_path):
     with open(path) as inputFile:
-        f = open("output.txt", "w")
+        f = open(output_path, "w")
         # decode amounts of each
         for line in inputFile:
             command = line.replace("\n", "").split(",")
