@@ -2,6 +2,7 @@ import atexit
 import sqlite3
 import os.path
 from DAO import Vaccines, Logistics, Suppliers, Clinics
+from DTO import Vaccine
 
 
 class _Repository:
@@ -24,8 +25,33 @@ class _Repository:
         all_demands = c.execute("""SELECT SUM(demand) FROM Clinics""").fetchall()[0]
         all_received = c.execute("""SELECT SUM(count_received) FROM Logistics""").fetchall()[0]
         all_sent = c.execute("""SELECT SUM(count_sent) FROM Logistics""").fetchall()[0]
-        line = ",".join([all_quantities[0], all_demands[0], all_received[0], all_sent[0]])
+        line = str(all_quantities[0]) + ',' + str(all_demands[0]) + ',' + str(all_received[0]) + ',' + str(
+            all_sent[0]) + '\n'
         return line
+
+    def pull_vaccines(self, demand):
+        c = self._conn.cursor()
+        c.execute("""SELECT id FROM Vaccines ORDER BY date""")
+        vaccines_ids = (c.fetchall())
+        i = 0
+
+        while i < len(vaccines_ids) and demand > 0:
+            c.execute("""SELECT * FROM Vaccines WHERE id=?""", [*vaccines_ids[i]])
+            vaccine = Vaccine(*(c.fetchone()))
+            new_amount = vaccine.quantity - demand
+            if new_amount > 0:
+                self._conn.execute("""UPDATE Vaccines SET quantity=? WHERE id=?""", [new_amount, vaccine.id])
+                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), demand)
+                break
+            elif new_amount == 0:
+                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine.id])
+                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), demand)
+                break
+            else:
+                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine.id])
+                demand = demand - vaccine.quantity
+                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), vaccine.quantity)
+            i = i + 1
 
     def create_tables(self):
         if self.isExist:

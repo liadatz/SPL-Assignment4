@@ -1,13 +1,16 @@
 import sys
-
-from DTO import Vaccine, Clinic, Supplier, Logistic
+from DTO import Vaccine, Supplier, Clinic, Logistic
 from _Repository import repo
 
 
-def main():
+def main(argv):
+    loadData(argv[1])
+    executeOrder(argv[2])
+
+
+def loadData(path):
     repo.create_tables()
-    readfromconfig = sys.argv[1]
-    with open(readfromconfig) as inputFile:
+    with open(path) as inputFile:
 
         # decode amounts of each type
         amounts = (inputFile.readline().replace("\n", "").split(","))
@@ -35,5 +38,28 @@ def main():
             logistic = Logistic(*curr)
             repo.logistics.insert(logistic)
 
+
+def executeOrder(path):
+    # repo.create_tables()
+    with open(path) as inputFile:
+        f = open("output.txt", "w")
+        # decode amounts of each
+        for line in inputFile:
+            command = line.replace("\n", "").split(",")
+            # receive shipment
+            if len(command) == 3:
+                vaccine = Vaccine(repo.vaccines.getNumberOfVaccines() + 1, command[2], repo.suppliers.getID(command[0]),
+                                  command[1])
+                repo.vaccines.insert(vaccine)
+                logistic_id = repo.suppliers.get_logistic_by_name(command[0])
+                repo.logistics.update_count_received(logistic_id, command[1])
+            else:
+                repo.pull_vaccines(int(command[1]))
+                repo.clinics.update_amount(command[0], command[1])
+            line = repo.get_output_addition()
+            f.write(line)
+        f.close()
+
+
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

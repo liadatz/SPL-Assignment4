@@ -1,6 +1,3 @@
-from DTO import Vaccine, Supplier, Clinic, Logistic
-
-
 class Vaccines:
     def __init__(self, conn):
         self._conn = conn
@@ -12,31 +9,9 @@ class Vaccines:
 
     def getNumberOfVaccines(self):
         c = self._conn.cursor()
-        c.execute("""SELECT COUNT(*) FROM Vaccines""")
-        return c.fetchone()[0]  # or all?
+        c.execute("""SELECT MAX(id) FROM Vaccines""")
+        return c.fetchone()[0]
 
-    def update(self, suppliers_id, amount_orig):
-        c = self._conn.cursor()
-        c.execute("""SELECT id, quantity FROM Vaccines WHERE supplier IN (1, 2)""")
-        vaccines = c.fetchall()
-        i = 0
-        amount = int(amount_orig)
-        print(vaccines)
-        while i < len(vaccines) and amount > 0:
-            vaccine = vaccines[i]
-            new_amount = int(vaccine[1]) - amount
-            print(new_amount)
-            if new_amount > 0:
-                self._conn.execute("""UPDATE Vaccines SET quantity=? WHERE id=?""", [new_amount, vaccine[0]])
-            elif new_amount == 0:
-                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine[0]])
-                amount = amount - vaccine[1]
-                print("equal zero")
-            else:
-                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine[0]])
-                amount = amount - vaccine[1]
-                print("below zero")
-            i = i + 1
 
 class Suppliers:
     def __init__(self, conn):
@@ -56,9 +31,14 @@ class Suppliers:
         c.execute("""SELECT id FROM Suppliers WHERE logistic=?""", [logistic_id])
         return c.fetchall()
 
-    def get_logistic(self, supplier_name):
+    def get_logistic_by_name(self, supplier_name):
         c = self._conn.cursor()
         c.execute("""SELECT logistic FROM Suppliers WHERE name=?""", [supplier_name])
+        return c.fetchone()[0]
+
+    def get_logistic_by_id(self, supplier_id):
+        c = self._conn.cursor()
+        c.execute("""SELECT logistic FROM Suppliers WHERE id=?""", [supplier_id])
         return c.fetchone()[0]
 
 
@@ -90,7 +70,8 @@ class Logistics:
            """, [Logistic.id, Logistic.name, Logistic.count_sent, Logistic.count_received])
 
     def update_count_received(self, logistic_id, received):
-        self._conn.execute("""UPDATE Logistics SET count_received=count_received+? WHERE id=?""", [received, logistic_id])
+        self._conn.execute("""UPDATE Logistics SET count_received=count_received+? WHERE id=?""",
+                           [received, logistic_id])
 
     def update_count_sent(self, logistic_id, sent):
         self._conn.execute("""UPDATE Logistics SET count_sent=count_sent+? WHERE id=?""", [sent, logistic_id])
