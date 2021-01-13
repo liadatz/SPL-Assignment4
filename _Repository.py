@@ -21,67 +21,66 @@ class _Repository:
 
     def get_output_addition(self):
         c = self._conn.cursor()
-        all_quantities = c.execute("""SELECT SUM(quantity) FROM Vaccines""").fetchall()[0]
-        all_demands = c.execute("""SELECT SUM(demand) FROM Clinics""").fetchall()[0]
-        all_received = c.execute("""SELECT SUM(count_received) FROM Logistics""").fetchall()[0]
-        all_sent = c.execute("""SELECT SUM(count_sent) FROM Logistics""").fetchall()[0]
+        all_quantities = c.execute("""SELECT SUM(quantity) FROM vaccines""").fetchall()[0]
+        all_demands = c.execute("""SELECT SUM(demand) FROM clinics""").fetchall()[0]
+        all_received = c.execute("""SELECT SUM(count_received) FROM logistics""").fetchall()[0]
+        all_sent = c.execute("""SELECT SUM(count_sent) FROM logistics""").fetchall()[0]
         line = str(all_quantities[0]) + ',' + str(all_demands[0]) + ',' + str(all_received[0]) + ',' + str(
             all_sent[0]) + '\n'
         return line
 
-    def pull_vaccines(self, demand):
+    def pull_vaccines(self, clinic_name, demand):
         c = self._conn.cursor()
-        c.execute("""SELECT id FROM Vaccines ORDER BY date""")
+        c.execute("""SELECT id FROM vaccines ORDER BY datetime(date) ASC""")
         vaccines_ids = (c.fetchall())
         i = 0
-
         while i < len(vaccines_ids) and demand > 0:
-            c.execute("""SELECT * FROM Vaccines WHERE id=?""", [*vaccines_ids[i]])
+            c.execute("""SELECT * FROM vaccines WHERE id=?""", [*vaccines_ids[i]])
             vaccine = Vaccine(*(c.fetchone()))
             new_amount = vaccine.quantity - demand
             if new_amount > 0:
-                self._conn.execute("""UPDATE Vaccines SET quantity=? WHERE id=?""", [new_amount, vaccine.id])
-                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), demand)
+                self._conn.execute("""UPDATE vaccines SET quantity=? WHERE id=?""", [new_amount, vaccine.id])
+                self.logistics.update_count_sent(self.clinics.get_logistic_id(clinic_name), demand)
                 break
             elif new_amount == 0:
-                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine.id])
-                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), demand)
+                self._conn.execute("""DELETE FROM vaccines WHERE id=?""", [vaccine.id])
+                self.logistics.update_count_sent(self.clinics.get_logistic_id(clinic_name), demand)
                 break
             else:
-                self._conn.execute("""DELETE FROM Vaccines WHERE id=?""", [vaccine.id])
+                self._conn.execute("""DELETE FROM vaccines WHERE id=?""", [vaccine.id])
                 demand = demand - vaccine.quantity
-                self.logistics.update_count_sent(self.suppliers.get_logistic_by_id(vaccine.supplier), vaccine.quantity)
+                self.logistics.update_count_sent(self.clinics.get_logistic_id(clinic_name), vaccine.quantity)
             i = i + 1
 
     def create_tables(self):
         if self.isExist:
-            self._conn.executescript("""DROP  TABLE Vaccines""")
-            self._conn.executescript("""DROP  TABLE Suppliers""")
-            self._conn.executescript("""DROP  TABLE Clinics""")
-            self._conn.executescript("""DROP  TABLE Logistics""")
+            self._conn.executescript("""DROP  TABLE vaccines""")
+            self._conn.executescript("""DROP  TABLE suppliers""")
+            self._conn.executescript("""DROP  TABLE clinics""")
+            self._conn.executescript("""DROP  TABLE logistics""")
 
         self._conn.executescript("""
-        CREATE TABLE Vaccines (
+        CREATE TABLE vaccines (
                 id       INTEGER            PRIMARY KEY,
                 date     DATE               NOT NULL,
-                supplier INTEGER REFERENCES Suppliers(id),
+                supplier INTEGER REFERENCES suppliers(id),
                 quantity INTEGER            NOT NULL 
             );
 
-        CREATE TABLE Suppliers (
+        CREATE TABLE suppliers (
                 id       INTEGER            PRIMARY KEY,
                 name     STRING             NOT NULL,
-                logistic INTEGER REFERENCES Logistics(id)
+                logistic INTEGER REFERENCES logistics(id)
             );
 
-        CREATE TABLE Clinics (
+        CREATE TABLE clinics (
                 id       INTEGER            PRIMARY KEY,
                 location STRING             NOT NULL,
                 demand   INTEGER            NOT NULL,
-                logistic INTEGER REFERENCES Logistics(id)
+                logistic INTEGER REFERENCES logistics(id)
             );
 
-          CREATE TABLE Logistics (
+          CREATE TABLE logistics (
                 id             INTEGER     PRIMARY KEY,
                 name           STRING      NOT NULL,
                 count_sent     INTEGER     NOT NULL,

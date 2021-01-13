@@ -54,7 +54,7 @@ def executeOrder(path):
                 logistic_id = repo.suppliers.get_logistic_by_name(command[0])
                 repo.logistics.update_count_received(logistic_id, command[1])
             else:
-                repo.pull_vaccines(int(command[1]))
+                repo.pull_vaccines(command[0], int(command[1]))
                 repo.clinics.update_amount(command[0], command[1])
             line = repo.get_output_addition()
             f.write(line)
