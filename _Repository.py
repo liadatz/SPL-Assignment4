@@ -7,7 +7,7 @@ from DTO import Vaccine
 
 class _Repository:
     def __init__(self):
-        self.isExist = os.path.isfile('database.db')  # TODO: delete before submission
+        self.isExist = os.path.isfile('database.db')
         self._conn = sqlite3.connect('database.db')
         # DAO'S
         self.vaccines = Vaccines(self._conn)
